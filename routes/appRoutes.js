@@ -1,51 +1,56 @@
 var express = require('express');
 var router = express.Router();
-var Country = require('../models/dataSchema');
+var Users = require('../models/dataSchema');
 
 
 router.post('/create',(req, res, next) => {
-    var newCountry = new Country({
-        name:req.body.name,
-        capital:req.body.capital
+    var newUsers = new Users({
+        firstName:req.body.firstName,
+        lastName:req.body.lastName,
+        email:req.body.email,
+        routingNum:req.body.routingNum,
+        accountNum:req.body.accountNum
     });
-    newCountry.save((err,country) =>{
+
+    newUsers.save((err,Users) =>{
          if(err)
          res.status(500).json({ errmsg:err});
-         res.status(200).json({msg:country});
+         res.status(200).json({msg:Users});
     });
         
 });
 
 router.get('/read',(req, res, next) => {
-    Country.find({},(err,countries) =>{
+    Users.find({},(err,allusers) =>{
         if(err)
          res.status(500).json({ errmsg:err});
-         res.status(200).json({msg:countries});
+         res.status(200).json({msg:allusers});
     });
 });
 
 router.put('/update',(req, res, next) => {
     
-    Country.findById(req.body._id, (err,country) => {
+    Users.findById(req.body._id, (err,users) => {
         if(err)
          res.status(500).json({ errmsg:err});
-         country.name = req.body.name;
-         country.capital = req.body.capital;
-         country.save((err, country) => {
+         users.firstName = req.body.firstName;
+         users.lastName = req.body.lastName;
+         users.email = req.body.email;
+         users.routingNum = req.body.routingNum;
+         users.accountNum = req.body.accountNum;
+         users.save((err, users) => {
              if(err)
-            res.status(500).json({ errmsg:err});
-           
-            res.status(200).json({msg:country});
+            res.status(500).json({ errmsg:err});           
+            res.status(200).json({msg:users});
          });
     })
 });
 
 router.delete('/delete/:id',(req, res, next) => {
-    Country.findOneAndRemove({_id:req.params.id}, (err, country) => {
+    Users.findOneAndRemove({_id:req.params.id}, (err, users) => {
         if(err)
-        res.status(500).json({ errmsg:err});
-       
-        res.status(200).json({msg:country});
+        res.status(500).json({ errmsg:err});       
+        res.status(200).json({msg:users});
     });
 });
 

@@ -1,8 +1,11 @@
 var mongoose = require('mongoose');
 
-var countrySchema = mongoose.Schema({
-        name:{type:String},
-        capital:{type:String}
+var usersSchema = mongoose.Schema({
+        firstName:{type:String},
+        lastName:{type:String},
+        email:{type:String},
+        routingNum:{type:Number},
+        accountNum:{type:Number}
 });
 
-module.exports = mongoose.model('country', countrySchema );
+module.exports = mongoose.model('users', usersSchema );
