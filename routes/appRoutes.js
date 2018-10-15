@@ -1,10 +1,38 @@
-var express = require('express');
-var router = express.Router();
-var Users = require('../models/dataSchema');
+const express = require('express');
+const router = express.Router();
+const User = require('../models/dataSchema');
+  
 
+router.get('/allusers', function(req,res){
+    console.log('Get Request for all users');
+    User.find({})
+    .exec(function(err,users){
+        if(err){
+            console.log("Error retrieving users");
+        }
+        else
+        {
+            res.json(users);
+        }
+    })
+});
+
+router.get('/users/:id', function(req,res){
+    console.log('Get Request for single user');
+    User.findById(req.params.id)
+    .exec(function(err,user){
+        if(err){
+            console.log("Error retrieving user");
+        }
+        else
+        {
+            res.json(user);
+        }
+    })
+});
 
 router.post('/create',(req, res, next) => {
-    var newUsers = new Users({
+    var newUser = new User({
         firstName:req.body.firstName,
         lastName:req.body.lastName,
         email:req.body.email,
@@ -12,45 +40,46 @@ router.post('/create',(req, res, next) => {
         accountNum:req.body.accountNum
     });
 
-    newUsers.save((err,Users) =>{
-         if(err)
-         res.status(500).json({ errmsg:err});
-         res.status(200).json({msg:Users});
+    newUser.save((err,User) =>{
+         if(err){
+            res.status(500).json({errmsg:err});
+        }
+        else{
+            res.status(200).json({msg:User});
+        }
     });
         
 });
 
-router.get('/read',(req, res, next) => {
-    Users.find({},(err,allusers) =>{
-        if(err)
-         res.status(500).json({ errmsg:err});
-         res.status(200).json({msg:allusers});
-    });
-});
-
-router.put('/update',(req, res, next) => {
+router.put('/update/:id',(req, res, next) => {
     
-    Users.findById(req.body._id, (err,users) => {
+    User.findById(req.params.id, (err,user) => {
         if(err)
          res.status(500).json({ errmsg:err});
-         users.firstName = req.body.firstName;
-         users.lastName = req.body.lastName;
-         users.email = req.body.email;
-         users.routingNum = req.body.routingNum;
-         users.accountNum = req.body.accountNum;
-         users.save((err, users) => {
-             if(err)
-            res.status(500).json({ errmsg:err});           
-            res.status(200).json({msg:users});
+         
+         user.firstName = req.body.firstName;
+         user.lastName = req.body.lastName;
+         user.email = req.body.email;
+         user.routingNum = req.body.routingNum;
+         user.accountNum = req.body.accountNum;
+         
+         user.save((err, user) => {
+             if(err){
+                res.status(500).json({ errmsg:err}); 
+             }else{
+                res.status(200).json({msg:user});
+             }
          });
     })
 });
 
 router.delete('/delete/:id',(req, res, next) => {
-    Users.findOneAndRemove({_id:req.params.id}, (err, users) => {
-        if(err)
-        res.status(500).json({ errmsg:err});       
-        res.status(200).json({msg:users});
+    User.findOneAndRemove(req.params.id, (err, user) => {
+        if(err){
+            res.status(500).json({ errmsg:err});     
+        }else{
+            res.status(200).json({msg:user});
+        }
     });
 });
 

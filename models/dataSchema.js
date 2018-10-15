@@ -1,6 +1,7 @@
 var mongoose = require('mongoose');
 
 var usersSchema = mongoose.Schema({
+       // filePath:{type:String},
         firstName:{type:String},
         lastName:{type:String},
         email:{type:String},
@@ -8,4 +9,4 @@ var usersSchema = mongoose.Schema({
         accountNum:{type:Number}
 });
 
-module.exports = mongoose.model('users', usersSchema );
+module.exports = mongoose.model('user', usersSchema, 'users');

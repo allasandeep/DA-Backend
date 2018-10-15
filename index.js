@@ -1,18 +1,27 @@
-var http = require('http');
-var express = require('express');
-var port = process.env.PORT || 8080;
-var app = express();
-var appRoutes = require('./routes/appRoutes');
-var mongoose = require('mongoose');
-var bodyParser = require('body-parser');
-var cors = require('cors');
+const http = require('http');
+const express = require('express');
+const port = process.env.PORT || 8080;
+const app = express();
+const appRoutes = require('./routes/appRoutes');
+const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
+const cors = require('cors');
 
-mongoose.connect('mongodb://localhost:27017/DocumentsArena', {useNewUrlParser: true });
-
+//Middleware
 app.use(cors());
 app.use(bodyParser.urlencoded({extended:true}));
 app.use(bodyParser.json());
 app.use('/', appRoutes);
+
+const mongoURI = 'mongodb://sandeepalla:sandeep1996@ds131973.mlab.com:31973/documents-arena';
+mongoose.Promise = global.Promise;
+
+mongoose.connect(mongoURI, {useNewUrlParser: true }, function(err){
+    if(err)
+    {
+        console.error("Error! " + err);
+    }
+});
 
 http.createServer(app).listen(port);
 
