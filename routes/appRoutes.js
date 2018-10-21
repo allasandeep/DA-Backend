@@ -1,10 +1,34 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/dataSchema');
+const multer = require('multer');
+
+const storage = multer.diskStorage({
+    destination: function(req, file, cb){
+        cb(null, './uploads/');
+    },
+    filename: function(req, file, cb){
+        cb(null, file.originalname);
+    }
+});
+
+/*const fileFilter = (req, file, cb) => {
+if(file.mimetype === 'image/jpeg'){
+    cb(null, false);
+}else{
+    cb(null, true);
+} 
+};
+
+const upload = multer({storage: storage, limits:{
+    fileSize: 1024 * 1024 * 5
+},
+fileFilter: fileFilter}); */
+
+const upload = multer({storage : storage});
   
 
-router.get('/allusers', function(req,res){
-    console.log('Get Request for all users');
+router.get('/readall', function(req,res){    
     User.find({})
     .exec(function(err,users){
         if(err){
@@ -17,8 +41,7 @@ router.get('/allusers', function(req,res){
     })
 });
 
-router.get('/users/:id', function(req,res){
-    console.log('Get Request for single user');
+router.get('/read/:id', function(req,res){    
     User.findById(req.params.id)
     .exec(function(err,user){
         if(err){
@@ -31,13 +54,15 @@ router.get('/users/:id', function(req,res){
     })
 });
 
-router.post('/create',(req, res, next) => {
+router.post('/create',upload.single('file'), (req, res, next) => {
+    console.log(req.file);
     var newUser = new User({
         firstName:req.body.firstName,
         lastName:req.body.lastName,
         email:req.body.email,
         routingNum:req.body.routingNum,
-        accountNum:req.body.accountNum
+        accountNum:req.body.accountNum,
+        documentPath:req.file.path
     });
 
     newUser.save((err,User) =>{

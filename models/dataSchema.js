@@ -5,8 +5,9 @@ var usersSchema = mongoose.Schema({
         firstName:{type:String},
         lastName:{type:String},
         email:{type:String},
-        routingNum:{type:Number},
-        accountNum:{type:Number}
+        routingNum:{type:String},
+        accountNum:{type:String},
+        documentPath: {type:String}
 });
 
 module.exports = mongoose.model('user', usersSchema, 'users');
