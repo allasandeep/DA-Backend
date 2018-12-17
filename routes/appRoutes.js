@@ -6,7 +6,7 @@ const multer = require('multer');
 const storage = multer.diskStorage({
     destination: function(req, file, cb){
         cb(null, './uploads/');
-    },
+    },    
     filename: function(req, file, cb){
         cb(null, file.originalname);
     }
@@ -62,7 +62,13 @@ router.post('/create',upload.single('file'), (req, res, next) => {
         email:req.body.email,
         routingNum:req.body.routingNum,
         accountNum:req.body.accountNum,
-        documentPath:req.file.path
+        fileAddress:req.body.fileAddress,
+        fileCity:req.body.fileCity,
+        fileState:req.body.fileState,
+        fileCountry:req.body.fileCountry,
+        fileZip:req.body.fileZip,
+        filePrice:req.body.filePrice,
+        documentPath:req.file.path        
     });
 
     newUser.save((err,User) =>{
@@ -87,6 +93,12 @@ router.put('/update/:id',(req, res, next) => {
          user.email = req.body.email;
          user.routingNum = req.body.routingNum;
          user.accountNum = req.body.accountNum;
+         user.fileAddress = req.body.fileAddress;
+         user.fileCity = req.body.fileCity;
+         user.fileState = req.body.fileState;
+         user.fileZip = req.body.fileZip;
+         user.filePrice = req.body.filePrice;
+         user.documentPath = req.file.path; 
          
          user.save((err, user) => {
              if(err){
