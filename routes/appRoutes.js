@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/dataSchema');
 const multer = require('multer');
+const path = require('path');
 
 const storage = multer.diskStorage({
     destination: function(req, file, cb){
@@ -52,6 +53,11 @@ router.get('/read/:id', function(req,res){
             res.json(user);
         }
     })
+});
+
+router.post('/download', (req,res,next) => {
+    filepath = path.join(__dirname,'../uploads/') + req.body.filename;    
+    res.sendFile(filepath);
 });
 
 router.post('/create',upload.single('file'), (req, res, next) => {
