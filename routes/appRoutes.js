@@ -3,6 +3,7 @@ const router = express.Router();
 const User = require('../models/dataSchema');
 const multer = require('multer');
 const path = require('path');
+const stripe = require("stripe")("sk_test_dX5mW24y8SYbSiWHTPqx7J5e");
 
 const storage = multer.diskStorage({
     destination: function(req, file, cb){
@@ -124,6 +125,63 @@ router.delete('/delete/:id',(req, res, next) => {
             res.status(200).json({msg:user});
         }
     });
+});
+
+router.post('/stripeCharge', (req,res,next) => {
+    console.log(req.body.token);
+    console.log(req.body.amount);
+   
+      let amount = req.body.amount;
+      let desc = req.body.fName;
+      
+        stripe.customers.create({
+           email: req.body.token.email,
+          source: req.body.token.id          
+        })
+        .then(customer =>
+          stripe.charges.create({
+            amount,
+            description: desc,
+               currency: "usd",
+               customer: customer.id,
+               receipt_email: req.body.token.email               
+          }, function(err, charge) {
+            // asynchronously called
+            if(err)
+                {
+                    res.status(500).json({ errmsg:err}); 
+            switch (err.type) {
+                case 'StripeCardError':
+                  // A declined card error
+                  err.message; // => e.g. "Your card's expiration year is invalid."
+                  break;
+                case 'RateLimitError':
+                  // Too many requests made to the API too quickly
+                  break;
+                case 'StripeInvalidRequestError':
+                  // Invalid parameters were supplied to Stripe's API
+                  break;
+                case 'StripeAPIError':
+                  // An error occurred internally with Stripe's API
+                  break;
+                case 'StripeConnectionError':
+                  // Some kind of error occurred during the HTTPS communication
+                  break;
+                case 'StripeAuthenticationError':
+                  // You probably used an incorrect API key
+                  break;
+                default:
+                  // Handle any other types of unexpected errors
+                  break;
+              }
+            }
+            else
+                {
+                    res.status(200).json({msg:'success'});
+                }
+          })        
+        );
+        
 });
 
 module.exports = router;
