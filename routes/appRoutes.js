@@ -83,7 +83,7 @@ router.post('/create',upload.single('file'), (req, res, next) => {
             res.status(500).json({errmsg:err});
         }
         else{
-            res.status(200).json({msg:User});
+            res.status(200).json({msg:'success'});
         }
     });
         
@@ -127,61 +127,89 @@ router.delete('/delete/:id',(req, res, next) => {
     });
 });
 
-router.post('/stripeCharge', (req,res,next) => {
-    console.log(req.body.token);
-    console.log(req.body.amount);
-   
-      let amount = req.body.amount;
-      let desc = req.body.fName;
-      
-        stripe.customers.create({
-           email: req.body.token.email,
-          source: req.body.token.id          
-        })
-        .then(customer =>
-          stripe.charges.create({
-            amount,
-            description: desc,
-               currency: "usd",
-               customer: customer.id,
-               receipt_email: req.body.token.email               
-          }, function(err, charge) {
-            // asynchronously called
-            if(err)
+router.post('/stripeCharge', (req,res,next) => {    
+    
+    let amount = req.body.amount;
+    let desc = req.body.fName;
+    let customer_email = req.body.token.email;    
+    var isCustomerExists = false;
+    let customer_ID;
+    let customer_Card;
+    stripe.customers.list(        
+        function(err, customers) {
+          // asynchronously called                
+          customers.data.forEach(function(element) {              
+              if(element.email == customer_email)
                 {
-                    res.status(500).json({ errmsg:err}); 
-            switch (err.type) {
-                case 'StripeCardError':
-                  // A declined card error
-                  err.message; // => e.g. "Your card's expiration year is invalid."
-                  break;
-                case 'RateLimitError':
-                  // Too many requests made to the API too quickly
-                  break;
-                case 'StripeInvalidRequestError':
-                  // Invalid parameters were supplied to Stripe's API
-                  break;
-                case 'StripeAPIError':
-                  // An error occurred internally with Stripe's API
-                  break;
-                case 'StripeConnectionError':
-                  // Some kind of error occurred during the HTTPS communication
-                  break;
-                case 'StripeAuthenticationError':
-                  // You probably used an incorrect API key
-                  break;
-                default:
-                  // Handle any other types of unexpected errors
-                  break;
-              }
-            }
-            else
-                {
-                    res.status(200).json({msg:'success'});
-                }
-          })        
-        );
-        
+                    console.log(element);
+                    isCustomerExists = true;
+                    customer_ID = element.id;  
+                    customer_Card = element.default_source                 
+                }                         
+          }, this);
+         
+          if(isCustomerExists){
+              console.log("Exists");         
+              console.log(customer_Card);
+              console.log(customer_ID);     
+             stripe.payouts.create({
+                amount: 1000, // amount in cents
+                currency: "usd"                
+              }, function(err, payout) {
+                console.log(payout);
+              });
+          }
+          else{              
+              stripe.customers.create({
+                 email: req.body.token.email,
+                source: req.body.token.id          
+              })
+              .then(customer =>
+                stripe.charges.create({
+                  amount,
+                  description: desc,
+                     currency: "usd",
+                     customer: customer.id,
+                     receipt_email: req.body.token.email               
+                }, function(err, charge) {
+                  // asynchronously called
+                  if(err)
+                      {
+                          res.status(500).json({ errmsg:err}); 
+                  switch (err.type) {
+                      case 'StripeCardError':
+                        // A declined card error
+                        err.message; // => e.g. "Your card's expiration year is invalid."
+                        break;
+                      case 'RateLimitError':
+                        // Too many requests made to the API too quickly
+                        break;
+                      case 'StripeInvalidRequestError':
+                        // Invalid parameters were supplied to Stripe's API
+                        break;
+                      case 'StripeAPIError':
+                        // An error occurred internally with Stripe's API
+                        break;
+                      case 'StripeConnectionError':
+                        // Some kind of error occurred during the HTTPS communication
+                        break;
+                      case 'StripeAuthenticationError':
+                        // You probably used an incorrect API key
+                        break;
+                      default:
+                        // Handle any other types of unexpected errors
+                        break;
+                    }
+                  }
+                  else
+                      {
+                          res.status(200).json({msg:'success'});
+                      }
+                })        
+              );
+          }          
+        }
+      );       
 });
 
 module.exports = router;
