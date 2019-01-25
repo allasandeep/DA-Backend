@@ -2,6 +2,7 @@ var mongoose = require('mongoose');
 
 var usersSchema = mongoose.Schema({
        // filePath:{type:String},
+        userData:{type:Object},
         firstName:{type:String},
         lastName:{type:String},
         email:{type:String},
