@@ -1,9 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/dataSchema');
+const UserDetails = require('../models/userDetails');
 const multer = require('multer');
 const path = require('path');
 const stripe = require("stripe")("sk_test_dX5mW24y8SYbSiWHTPqx7J5e");
+const jwt = require('jsonwebtoken');
 
 const storage = multer.diskStorage({
     destination: function(req, file, cb){
@@ -28,7 +30,72 @@ const upload = multer({storage: storage, limits:{
 fileFilter: fileFilter}); */
 
 const upload = multer({storage : storage});
-  
+
+router.post('/login', function(req,res,next){
+    let promise = UserDetails.findOne({email:req.body.email}).exec();
+    console.log(promise);
+    promise.then(function(doc){        
+        if(doc){
+            if(doc.isValid(req.body.password)){
+                let token = jwt.sign({id:doc._id, email:doc.email, username:doc.username} , 'asshdncjkduehasnckdkl', {expiresIn : '3h'});
+                return res.status(200).json(token);
+            }
+            else{
+                return res.status(501).json({message:'Invalid Credentials'});
+            }
+        }
+        else{
+            return res.status(501).json({message:'User email is not registered.'})
+        }
+    });
+
+    promise.catch(function(err){
+        return res.status(501).json({message:'Some internal error'});
+    })  
+});
+
+router.get('/verifyToken', verifyToken, function(req,res,next){
+    return res.status(200).json(decodedToken);
+});
+
+let decodedToken = '';
+function verifyToken(req,res,next){
+    let token = req.query.token;    
+    jwt.verify(token, 'asshdncjkduehasnckdkl', function(err, tokendata){
+        if(err)
+            {
+                return res.status(400).json({message:'Unauthorized Request'});
+            }
+
+            if(tokendata){
+                decodedToken = tokendata;
+                next();
+            }
+    }) 
+        
+}
+
+router.post('/register', function(req,res,next){
+    addUserToDB(req, res);
+});
+
+async function addUserToDB(req,res){
+
+    let user = new UserDetails({
+        email:req.body.email,
+        username:req.body.username,
+        password:UserDetails.hashPassword(req.body.password),
+        creation_dt:Date.now()
+    });
+
+    try{
+        doc = await user.save();       
+        return res.status(201).json(doc);
+    }
+    catch(err){
+        return res.status(501).json(err);
+    }
+}
 
 router.get('/readall', function(req,res){    
     User.find({})
@@ -63,7 +130,8 @@ router.post('/download', (req,res,next) => {
 
 router.post('/create',upload.single('file'), (req, res, next) => {
     console.log(req.file);
-    var newUser = new User({
+    let newUser = new User({
+        userData:JSON.parse(req.body.userId),
         firstName:req.body.firstName,
         lastName:req.body.lastName,
         email:req.body.email,
